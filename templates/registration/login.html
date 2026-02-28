@@ -1,12 +1,93 @@
 {% extends "base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Sign in — Inkwell{% endblock %}
+
+{% block extra_styles %}
+.auth-wrap {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+.auth-card h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.03em;
+}
+.auth-card h1 span { color: var(--red); }
+.auth-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+.auth-form { display: flex; flex-direction: column; gap: 1.1rem; }
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.form-errors {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--red);
+  margin-bottom: 0.5rem;
+}
+.form-errors ul { list-style: none; }
+{% endblock %}
 
 {% block content %}
-<h2>Log In</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form }}
-  <button type="submit">Log In</button>
-</form>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>Welcome <span>back</span></h1>
+    <p class="auth-subtitle">Sign in to your account to continue</p>
+
+    {% if form.non_field_errors %}
+      <div class="form-errors">
+        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="auth-form" novalidate>
+      {% csrf_token %}
+
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <div class="field-error">{{ form.username.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <div class="field-error">{{ form.password.errors }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-full" style="margin-top:0.4rem;">
+        Sign in
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Don't have an account? <a href="{% url 'user:register' %}">Sign up</a>
+    </p>
+  </div>
+</div>
 {% endblock %}

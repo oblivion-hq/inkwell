@@ -1,13 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Inkwell — A place for your thoughts{% endblock %}
+
+{% block extra_styles %}
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: calc(100vh - 56px);
+  padding: 3rem 1.5rem;
+  gap: 1.5rem;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  background: var(--red-dim);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+}
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  max-width: 700px;
+}
+.hero h1 span { color: var(--red); }
+.hero p {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  line-height: 1.7;
+}
+.hero-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+.hero-actions .btn { padding: 0.7rem 1.8rem; font-size: 0.95rem; }
+
+/* Authenticated state */
+.dash-wrap {
+  max-width: 640px;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+}
+.dash-greeting {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.4rem;
+}
+.dash-greeting span { color: var(--red); }
+.dash-sub {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+.dash-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+{% endblock %}
+
 {% block content %}
 {% if user.is_authenticated %}
-Hi {{ user.username }}!
-<a href="/blog/">Blog</a>
-<form action="{% url 'logout' %}" method="post">
-  {% csrf_token %}
-  <button type="submit">Log Out</button>
-</form>
+  <div class="dash-wrap">
+    <p class="dash-greeting">Hey, <span>{{ user.username }}</span> 👋</p>
+    <p class="dash-sub">Welcome back. Ready to write something?</p>
+    <div class="dash-actions">
+      <a href="{% url 'blog:blog-home' %}" class="btn">Go to blog</a>
+    </div>
+  </div>
 {% else %}
-<p>You are not logged in</p>
-<a href="{% url 'login' %}">Log In</a>
+  <div class="hero">
+    <span class="hero-eyebrow">&#9679; Open platform</span>
+    <h1>Write, share, and <span>connect</span></h1>
+    <p>Inkwell is a simple blogging platform for people who love words. No noise, just writing.</p>
+    <div class="hero-actions">
+      <a href="{% url 'user:register' %}" class="btn">Start writing</a>
+      <a href="{% url 'login' %}" class="btn btn-outline">Sign in</a>
+    </div>
+  </div>
 {% endif %}
 {% endblock %}
