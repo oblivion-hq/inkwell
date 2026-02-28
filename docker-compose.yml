@@ -1,46 +1,51 @@
 services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────
   db:
-    image: postgres:alpine
+    image: postgres:16-alpine
     container_name: blog_postgres
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: blog_db
-      POSTGRES_USER: bloguser
+      POSTGRES_DB:       blog_db
+      POSTGRES_USER:     bloguser
       POSTGRES_PASSWORD: blogpass123
-    ports:
-      - "5432:5432"
+    expose:
+      - "5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bloguser -d blog_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:alpine
-    container_name: blog_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-  
+  # ── Django + Gunicorn ───────────────────────────────────────
   web:
     build: .
     container_name: blog_django
-    command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
+    env_file: .env
     volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
+      - static_volume:/app/staticfiles   # populated by entrypoint collectstatic
+    expose:
+      - "8000"
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
+
+  # ── Nginx (reverse proxy + static files) ────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: blog_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/vol/static:ro       # same volume, read-only in nginx
+    depends_on:
+      - web
 
 volumes:
   postgres_data:
-  redis_data:
+  static_volume:
