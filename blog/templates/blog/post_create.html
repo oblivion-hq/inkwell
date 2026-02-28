@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+
+{% block title %}New post — Inkwell{% endblock %}
+
+{% block extra_styles %}
+/* ── Container + page fill ──────────────────────────────── */
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Top bar: title + excerpt ───────────────────────────── */
+.editor-top {
+  flex-shrink: 0;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.editor-top .field input[type="text"] {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  background: transparent;
+  border-color: transparent;
+  padding: 0.4rem 0.5rem;
+}
+.editor-top .field input[type="text"]:focus {
+  background: var(--surface-2);
+  border-color: var(--red);
+}
+.editor-top .field textarea { font-size: 0.875rem; resize: none; }
+.editor-top .field label { font-size: 0.7rem; }
+
+/* ── Split pane ─────────────────────────────────────────── */
+.editor-split {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+.editor-pane {
+  flex: 1 1 50%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.editor-pane + .editor-pane { border-left: 1px solid var(--border); }
+.pane-header {
+  flex-shrink: 0;
+  padding: 0.4rem 1rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.pane-body { flex: 1 1 0; min-height: 0; overflow: hidden; }
+.pane-body-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1.5rem;
+  background: var(--surface);
+}
+
+/* ── Markdown textarea ──────────────────────────────────── */
+#md-editor {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none !important;
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  padding: 1rem 1.25rem;
+  outline: none;
+  box-shadow: none !important;
+}
+
+/* ── Preview prose ──────────────────────────────────────── */
+.md-preview { color: var(--text); font-size: 0.95rem; line-height: 1.75; }
+.md-preview h1,.md-preview h2,.md-preview h3,
+.md-preview h4,.md-preview h5,.md-preview h6 {
+  font-weight: 700; letter-spacing: -0.02em; line-height: 1.25;
+  margin: 1.4em 0 0.45em; color: var(--text);
+}
+.md-preview h1 { font-size: 1.7rem; }
+.md-preview h2 { font-size: 1.35rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+.md-preview h3 { font-size: 1.1rem; }
+.md-preview h4,.md-preview h5,.md-preview h6 { font-size: 0.95rem; }
+.md-preview p  { margin: 0.85em 0; }
+.md-preview a  { color: var(--red); }
+.md-preview strong { color: var(--text); font-weight: 600; }
+.md-preview em { color: var(--text-soft); font-style: italic; }
+.md-preview ul,.md-preview ol { margin: 0.85em 0; padding-left: 1.5em; }
+.md-preview li { margin: 0.25em 0; }
+.md-preview blockquote {
+  border-left: 3px solid var(--red); padding: 0.4em 1em; margin: 1em 0;
+  background: var(--surface-2); border-radius: 0 4px 4px 0; color: var(--text-soft);
+}
+.md-preview code {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px;
+  padding: 0.15em 0.4em; font-family: 'JetBrains Mono','Fira Code',monospace;
+  font-size: 0.82em; color: var(--red);
+}
+.md-preview pre {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 1em 1.25em; overflow-x: auto; margin: 1em 0;
+}
+.md-preview pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.85rem; }
+.md-preview table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 0.875rem; }
+.md-preview th,.md-preview td { border: 1px solid var(--border); padding: 0.5em 0.75em; }
+.md-preview th { background: var(--surface-2); font-weight: 600; color: var(--text-soft); }
+.md-preview tr:nth-child(even) td { background: rgba(255,255,255,.02); }
+.md-preview hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+.md-preview img { max-width: 100%; border-radius: 4px; }
+.preview-empty { color: var(--text-muted); font-size: 0.875rem; }
+
+/* ── Bottom bar ─────────────────────────────────────────── */
+.editor-bottom {
+  flex-shrink: 0;
+  padding: 0.85rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.bottom-left  { display: flex; align-items: center; gap: 1rem; flex: 1 1 auto; flex-wrap: wrap; }
+.bottom-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+
+/* ── Custom tag multi-select dropdown ───────────────────── */
+.tag-select { position: relative; }
+
+.tag-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 160px;
+  max-width: 360px;
+  padding: 0.45rem 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  text-align: left;
+  flex-wrap: wrap;
+  row-gap: 0.3rem;
+}
+.tag-select-trigger:hover { border-color: var(--red); }
+.tag-select-trigger.open  { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-dim); }
+
+.tag-select-placeholder { color: var(--text-muted); font-size: 0.85rem; }
+
+.tag-select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(220,38,38,0.3);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--red);
+  white-space: nowrap;
+}
+
+.tag-select-chevron {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+  color: var(--text-muted);
+}
+.tag-select-trigger.open .tag-select-chevron { transform: rotate(180deg); }
+
+.tag-select-dropdown {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);  /* open upward — bottom bar is at page bottom */
+  left: 0;
+  min-width: 200px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.5);
+  z-index: 200;
+  overflow: hidden;
+}
+.tag-select-dropdown.open { display: block; }
+
+.tag-select-header {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.tag-select-list { max-height: 220px; overflow-y: auto; padding: 0.35rem 0; }
+
+.tag-select-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  transition: background 0.1s, color 0.1s;
+  gap: 0.75rem;
+}
+.tag-select-item:hover { background: var(--surface); color: var(--text); }
+.tag-select-item.selected { color: var(--red); }
+.tag-select-item.selected:hover { background: var(--red-dim); }
+
+.tag-select-item-name { flex: 1; }
+
+.tag-select-tick {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.tag-select-item.selected .tag-select-tick {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.tag-select-empty {
+  padding: 0.75rem 0.85rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── Publish toggle switch ──────────────────────────────── */
+.publish-toggle { position: relative; display: flex; align-items: center; }
+/* visually hide the native checkbox but keep it in the DOM for form submit */
+.publish-toggle input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-track {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.2s, background 0.2s;
+}
+/* checked state — sibling combinator */
+.publish-toggle input:checked ~ .toggle-label .toggle-track {
+  background: var(--red);
+  border-color: var(--red);
+}
+.publish-toggle input:checked ~ .toggle-label .toggle-thumb {
+  transform: translateX(18px);
+  background: #fff;
+}
+.toggle-text {
+  font-size: 0.875rem;
+  color: var(--text-soft);
+  transition: color 0.15s;
+}
+.publish-toggle input:checked ~ .toggle-label .toggle-text {
+  color: var(--text);
+}
+
+.editor-actions { display: flex; gap: 0.6rem; }
+{% endblock %}
+
+{% block content %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="editor-page">
+
+    <!-- ── Top: title + excerpt ──────────────────────── -->
+    <div class="editor-top">
+      <div class="field">
+        <label for="{{ form.title.id_for_label }}">Title</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="field-error">{{ form.title.errors }}</div>{% endif %}
+      </div>
+      <div class="field">
+        <label for="{{ form.excerpt.id_for_label }}">Excerpt</label>
+        {{ form.excerpt }}
+        {% if form.excerpt.errors %}<div class="field-error">{{ form.excerpt.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- ── Split: editor | preview ──────────────────── -->
+    <div class="editor-split">
+
+      <div class="editor-pane">
+        <div class="pane-header">Markdown</div>
+        <div class="pane-body">
+          {% if form.content.errors %}
+            <div class="field-error" style="padding:.5rem 1rem">{{ form.content.errors }}</div>
+          {% endif %}
+          {{ form.content }}
+        </div>
+      </div>
+
+      <div class="editor-pane">
+        <div class="pane-header">Preview</div>
+        <div class="pane-body-scroll">
+          <div id="md-preview" class="md-preview">
+            <p class="preview-empty">Start typing to see a preview…</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Bottom: tags + publish + actions ─────────── -->
+    <div class="editor-bottom">
+
+      <div class="bottom-left">
+
+        <!-- Custom tag dropdown — built over Django's hidden checkboxes -->
+        <div>
+          <span class="tags-label" style="display:block;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:.4rem;">Tags</span>
+
+          <!-- Django renders the real checkboxes here; JS hides and replaces them -->
+          <div id="tags-native" style="display:none;">
+            {% for cb in form.tags %}{{ cb }}{% endfor %}
+          </div>
+
+          {% if form.tags.field.queryset.exists %}
+            <div class="tag-select" id="tag-select">
+              <!-- trigger + dropdown injected by JS -->
+            </div>
+          {% else %}
+            <span style="font-size:.8rem;color:var(--text-muted);">No tags yet — add from <a href="/admin/blog/tag/add/">admin</a>.</span>
+          {% endif %}
+
+          {% if form.tags.errors %}<div class="field-error" style="margin-top:.3rem">{{ form.tags.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Publish toggle -->
+        <div class="publish-toggle">
+          {{ form.published }}
+          <label class="toggle-label" for="{{ form.published.id_for_label }}">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-text" id="toggle-text">Save as draft</span>
+          </label>
+          {% if form.published.errors %}<div class="field-error">{{ form.published.errors }}</div>{% endif %}
+        </div>
+
+      </div>
+
+      <div class="bottom-right">
+        <a href="{% url 'blog:blog-home' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn">Save post</button>
+      </div>
+
+    </div>
+  </div>
+</form>
+
+<!-- Marked.js for live preview -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script>
+(function () {
+  /* ── Live markdown preview ────────────────────────────── */
+  marked.setOptions({ gfm: true, breaks: true });
+  const editor  = document.getElementById('md-editor');
+  const preview = document.getElementById('md-preview');
+  const EMPTY   = '<p class="preview-empty">Start typing to see a preview\u2026</p>';
+  function renderMd() {
+    preview.innerHTML = editor.value.trim() ? marked.parse(editor.value) : EMPTY;
+  }
+  editor.addEventListener('input', renderMd);
+  renderMd();
+
+  /* ── Publish toggle label ─────────────────────────────── */
+  const publishCb   = document.getElementById('{{ form.published.id_for_label }}');
+  const toggleText  = document.getElementById('toggle-text');
+  function syncToggleText() {
+    toggleText.textContent = publishCb.checked ? 'Publish immediately' : 'Save as draft';
+  }
+  publishCb.addEventListener('change', syncToggleText);
+  syncToggleText();
+
+  /* ── Custom tag multi-select ──────────────────────────── */
+  const tagSelectEl = document.getElementById('tag-select');
+  if (!tagSelectEl) return;   // no tags exist yet
+
+  const nativeWrap  = document.getElementById('tags-native');
+  const checkboxes  = Array.from(nativeWrap.querySelectorAll('input[type="checkbox"]'));
+
+  if (checkboxes.length === 0) return;
+
+  // ── Build DOM ──────────────────────────────────────────
+  const chevronSVG = `<svg class="tag-select-chevron" width="14" height="14" viewBox="0 0 24 24"
+    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="6 9 12 15 18 9"/>
+  </svg>`;
+
+  const tickSVG = `<svg width="10" height="10" viewBox="0 0 12 12"
+    fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="2 6 5 9 10 3"/>
+  </svg>`;
+
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'tag-select-trigger';
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'tag-select-dropdown';
+
+  const dropHeader = document.createElement('div');
+  dropHeader.className = 'tag-select-header';
+  dropHeader.textContent = 'Select tags';
+  dropdown.appendChild(dropHeader);
+
+  const list = document.createElement('div');
+  list.className = 'tag-select-list';
+
+  // Map each checkbox → dropdown item
+  const itemMap = new Map();   // checkbox → item el
+  checkboxes.forEach(cb => {
+    const label = nativeWrap.querySelector(`label[for="${cb.id}"]`);
+    const name  = label ? label.textContent.trim() : cb.value;
+
+    const item = document.createElement('div');
+    item.className = 'tag-select-item' + (cb.checked ? ' selected' : '');
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'tag-select-item-name';
+    nameEl.textContent = name;
+
+    const tick = document.createElement('span');
+    tick.className = 'tag-select-tick';
+    tick.innerHTML = tickSVG;
+
+    item.appendChild(nameEl);
+    item.appendChild(tick);
+    list.appendChild(item);
+    itemMap.set(cb, { item, name });
+
+    item.addEventListener('click', () => {
+      cb.checked = !cb.checked;
+      item.classList.toggle('selected', cb.checked);
+      updateTrigger();
+    });
+  });
+
+  dropdown.appendChild(list);
+  tagSelectEl.appendChild(trigger);
+  tagSelectEl.appendChild(dropdown);
+
+  // ── Update trigger label / pills ───────────────────────
+  function updateTrigger() {
+    trigger.innerHTML = '';
+    const selected = checkboxes.filter(cb => cb.checked);
+    if (selected.length === 0) {
+      const ph = document.createElement('span');
+      ph.className = 'tag-select-placeholder';
+      ph.textContent = 'Select tags\u2026';
+      trigger.appendChild(ph);
+    } else {
+      selected.forEach(cb => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-select-pill';
+        pill.textContent = itemMap.get(cb).name;
+        trigger.appendChild(pill);
+      });
+    }
+    trigger.insertAdjacentHTML('beforeend', chevronSVG);
+  }
+  updateTrigger();
+
+  // ── Toggle dropdown open/close ─────────────────────────
+  let isOpen = false;
+  function openDropdown()  { isOpen = true;  dropdown.classList.add('open'); trigger.classList.add('open'); }
+  function closeDropdown() { isOpen = false; dropdown.classList.remove('open'); trigger.classList.remove('open'); }
+
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isOpen ? closeDropdown() : openDropdown();
+  });
+  document.addEventListener('click', (e) => {
+    if (!tagSelectEl.contains(e.target)) closeDropdown();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDropdown();
+  });
+}());
+</script>
+{% endblock %}

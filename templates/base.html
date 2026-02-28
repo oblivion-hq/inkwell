@@ -1,21 +1,190 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>{% block title %}Django Auth Tutorial{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Inkwell{% endblock %}</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
     <style>
-      * {
-        font-family: "Kalam", sans-serif;
+      *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
+
+      :root {
+        --bg:          #0a0a0a;
+        --surface:     #111111;
+        --surface-2:   #1a1a1a;
+        --border:      #262626;
+        --red:         #dc2626;
+        --red-hover:   #b91c1c;
+        --red-dim:     rgba(220, 38, 38, 0.12);
+        --text:        #f0f0f0;
+        --text-muted:  #6b6b6b;
+        --text-soft:   #a0a0a0;
+      }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      a {
+        color: var(--red);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      /* ── Buttons ──────────────────────────────── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        background: var(--red);
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        text-decoration: none;
+      }
+      .btn:hover {
+        background: var(--red-hover);
+        text-decoration: none;
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-soft);
+      }
+      .btn-outline:hover {
+        border-color: var(--red);
+        color: var(--red);
+        background: var(--red-dim);
+      }
+      .btn-full { width: 100%; }
+
+      /* ── Form fields ──────────────────────────── */
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .field label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-soft);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .field input,
+      .field textarea,
+      .field select {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.65rem 0.85rem;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        transition: border-color 0.15s;
+        outline: none;
+        width: 100%;
+      }
+      .field input:focus,
+      .field textarea:focus {
+        border-color: var(--red);
+        box-shadow: 0 0 0 3px var(--red-dim);
+      }
+      .field input::placeholder {
+        color: var(--text-muted);
+      }
+      .field-help {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .field-error {
+        font-size: 0.8rem;
+        color: var(--red);
+      }
+      .field-error ul { list-style: none; }
+
+      /* ── Navbar ───────────────────────────────── */
+      .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2rem;
+        height: 56px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .navbar-brand {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        text-decoration: none;
+        letter-spacing: -0.02em;
+      }
+      .navbar-brand span { color: var(--red); }
+      .navbar-brand:hover { text-decoration: none; }
+      .navbar-links {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .navbar-links a {
+        font-size: 0.875rem;
+        color: var(--text-soft);
+      }
+      .navbar-links a:hover { color: var(--text); text-decoration: none; }
+
+      {% block extra_styles %}{% endblock %}
     </style>
   </head>
 
   <body>
-    <main>{% block content %} {% endblock %}</main>
+    <nav class="navbar">
+      <a href="{% url 'home' %}" class="navbar-brand">Ink<span>well</span></a>
+      <div class="navbar-links">
+        {% if user.is_authenticated %}
+          <a href="{% url 'blog:blog-home' %}">Blog</a>
+          <span style="font-size:0.85rem;color:var(--text-muted);">{{ user.username }}</span>
+          <form action="{% url 'logout' %}" method="post" style="margin:0">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline" style="padding:0.4rem 1rem;font-size:0.85rem;">
+              Sign out
+            </button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}">Sign in</a>
+          <a href="{% url 'user:register' %}" class="btn" style="padding:0.4rem 1rem;font-size:0.85rem;">
+            Sign up
+          </a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <main>{% block content %}{% endblock %}</main>
   </body>
 </html>
