@@ -42,19 +42,14 @@ services:
       - static_volume:/vol/static:ro
     depends_on:
       - web
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.inkwell.rule=Host(`${DOMAIN}`)"
-      - "traefik.http.routers.inkwell.entrypoints=web"
-      - "traefik.http.services.inkwell.loadbalancer.server.port=80"
     networks:
       - default
-      - traefik_proxy
+      - proxy_network
 
 volumes:
   postgres_data:
   static_volume:
 
 networks:
-  traefik_proxy:
+  proxy_network:
     external: true
