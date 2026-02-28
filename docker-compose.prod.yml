@@ -35,14 +35,26 @@ services:
     image: nginx:1.27-alpine
     container_name: blog_nginx
     restart: unless-stopped
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - static_volume:/vol/static:ro
     depends_on:
       - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.inkwell.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.inkwell.entrypoints=web"
+      - "traefik.http.services.inkwell.loadbalancer.server.port=80"
+    networks:
+      - default
+      - traefik_proxy
 
 volumes:
   postgres_data:
   static_volume:
+
+networks:
+  traefik_proxy:
+    external: true
