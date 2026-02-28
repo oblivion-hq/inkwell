@@ -169,6 +169,7 @@
       <div class="navbar-links">
         {% if user.is_authenticated %}
           <a href="{% url 'blog:blog-home' %}">Blog</a>
+          <span style="font-size:0.85rem;color:var(--text-muted);">{{ user.username }}</span>
           <form action="{% url 'logout' %}" method="post" style="margin:0">
             {% csrf_token %}
             <button type="submit" class="btn btn-outline" style="padding:0.4rem 1rem;font-size:0.85rem;">
