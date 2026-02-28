@@ -78,7 +78,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-<<<<<<< HEAD
       - name: Prepare deploy directory on server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -88,8 +87,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: mkdir -p /opt/inkwell/nginx
 
-=======
->>>>>>> 5ca9e9ddb7a4df9c148caf6f486ceb870f954165
       - name: Copy compose file and nginx config to server
         uses: appleboy/scp-action@v0.1.7
         with:
