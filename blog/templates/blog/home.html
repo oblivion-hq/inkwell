@@ -1,2 +1,45 @@
-<h1>blog home page</h1>
-<a href="/">home</a>
+{% extends "base.html" %}
+
+{% block title %}Blog — Inkwell{% endblock %}
+
+{% block extra_styles %}
+.blog-home {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+.blog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+}
+.blog-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+.blog-empty {
+  text-align: center;
+  padding: 5rem 0;
+}
+.blog-empty p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="blog-home">
+  <div class="blog-header">
+    <h1>Blog</h1>
+    <a href="{% url 'blog:post-create' %}" class="btn">+ New post</a>
+  </div>
+
+  <div class="blog-empty">
+    <p>Nothing here yet. Write your first post.</p>
+    <a href="{% url 'blog:post-create' %}" class="btn">Start writing</a>
+  </div>
+</div>
+{% endblock %}
