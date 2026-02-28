@@ -159,14 +159,93 @@
 .article-body tr:nth-child(even) td { background: rgba(255,255,255,.02); }
 .article-body hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
 .article-body img { max-width: 100%; border-radius: 6px; margin: 1em 0; }
+
+/* ── Comments ────────────────────────────────────────────── */
+.comments-section {
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+.comments-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  color: var(--text-soft);
+}
+.comments-heading span { color: var(--text); }
+
+.comment-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 2rem; }
+
+.comment {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.comment:last-child { border-bottom: none; }
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.comment-author {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.comment-author.is-me { color: var(--red); }
+.comment-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.comment-body {
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+/* ── Comment form ────────────────────────────────────────── */
+.comment-form-wrap { margin-top: 1.5rem; }
+.comment-form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.comment-form-wrap textarea {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 0.75rem 1rem;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.comment-form-wrap textarea:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-dim);
+}
+.comment-form-wrap textarea::placeholder { color: var(--text-muted); }
+.comment-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.6rem;
+}
 {% endblock %}
 
 {% block content %}
 <div class="article-wrap">
 
-  <a href="{% url 'blog:blog-home' %}" class="back-link">
-    ← All posts
-  </a>
+  <a href="{% url 'blog:blog-home' %}" class="back-link">← All posts</a>
 
   <header class="article-header">
 
@@ -192,12 +271,6 @@
         <span class="article-meta-dot"></span>
         <span>Updated {{ post.updated_at|date:"M j, Y" }}</span>
       {% endif %}
-      <span class="article-meta-dot"></span>
-      {% if post.published %}
-        <span class="article-status published">Published</span>
-      {% else %}
-        <span class="article-status draft">Draft</span>
-      {% endif %}
     </div>
 
   </header>
@@ -207,6 +280,48 @@
   <div class="article-body">
     {{ post.get_content_html }}
   </div>
+
+  <!-- ── Comments ─────────────────────────────────────── -->
+  <section class="comments-section">
+
+    <p class="comments-heading">
+      <span>{{ comments|length }}</span>
+      comment{{ comments|length|pluralize }}
+    </p>
+
+    {% if comments %}
+      <div class="comment-list">
+        {% for comment in comments %}
+          <div class="comment">
+            <div class="comment-meta">
+              <span class="comment-author {% if comment.author == request.user %}is-me{% endif %}">
+                {{ comment.author.username }}
+                {% if comment.author == request.user %} (you){% endif %}
+              </span>
+              <span class="comment-date">· {{ comment.created_at|timesince }} ago</span>
+            </div>
+            <p class="comment-body">{{ comment.body }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Comment form -->
+    <div class="comment-form-wrap">
+      <span class="comment-form-label">Leave a comment</span>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.body }}
+        {% if form.body.errors %}
+          <div class="field-error" style="margin-top:.3rem">{{ form.body.errors }}</div>
+        {% endif %}
+        <div class="comment-form-actions">
+          <button type="submit" class="btn">Post comment</button>
+        </div>
+      </form>
+    </div>
+
+  </section>
 
 </div>
 {% endblock %}

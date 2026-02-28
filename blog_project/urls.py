@@ -17,12 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic.base import TemplateView
+
+from blog.views import public_home
 
 handler404 = "blog_project.views.page_not_found"
 
 urlpatterns = [
-    path("", TemplateView.as_view(template_name="home.html"), name="home"),
+    path("", public_home, name="home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path("user/", include("user.urls")),

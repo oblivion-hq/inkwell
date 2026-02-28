@@ -70,7 +70,6 @@
   text-transform: uppercase;
   padding: 0.2rem 0.55rem;
   border-radius: 4px;
-  margin-top: 0.1rem;
 }
 .post-badge.published {
   background: rgba(34, 197, 94, 0.1);
@@ -82,6 +81,32 @@
   color: var(--text-muted);
   border: 1px solid var(--border);
 }
+
+/* ── Post card actions ──────────────────────────────────── */
+.post-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.post-action {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+}
+.post-action:hover { border-color: var(--red); color: var(--red); background: var(--red-dim); text-decoration: none; }
+.post-action-delete { color: var(--text-muted); }
+.post-action-delete:hover { border-color: #dc2626; color: #dc2626; background: rgba(220,38,38,0.08); }
 
 .post-excerpt {
   font-size: 0.875rem;
@@ -141,7 +166,7 @@
 <div class="blog-home">
   <div class="blog-header">
     <h1>
-      Blog
+      My posts
       {% if posts %}<span class="post-count">{{ posts|length }} post{{ posts|length|pluralize }}</span>{% endif %}
     </h1>
     <a href="{% url 'blog:post-create' %}" class="btn">+ New post</a>
@@ -154,11 +179,21 @@
 
           <div class="post-card-top">
             <a href="{% url 'blog:post-detail' post.slug %}" class="post-title">{{ post.title }}</a>
-            {% if post.published %}
-              <span class="post-badge published">Published</span>
-            {% else %}
-              <span class="post-badge draft">Draft</span>
-            {% endif %}
+            <div class="post-card-right">
+              {% if post.published %}
+                <span class="post-badge published">Published</span>
+              {% else %}
+                <span class="post-badge draft">Draft</span>
+              {% endif %}
+              <a href="{% url 'blog:post-edit' post.slug %}" class="post-action">Edit</a>
+              <form method="post" action="{% url 'blog:post-delete' post.slug %}" style="margin:0">
+                {% csrf_token %}
+                <button type="submit" class="post-action post-action-delete"
+                  onclick="return confirm('Delete "{{ post.title|escapejs }}"? This cannot be undone.')">
+                  Delete
+                </button>
+              </form>
+            </div>
           </div>
 
           {% if post.excerpt %}
@@ -168,8 +203,6 @@
           {% endif %}
 
           <div class="post-card-meta">
-            <span class="meta-item">{{ post.author.username }}</span>
-            <span class="meta-dot"></span>
             <span class="meta-item">{{ post.created_at|date:"M j, Y" }}</span>
             {% if post.tags.exists %}
               <span class="meta-dot"></span>
