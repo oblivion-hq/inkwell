@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }} — Inkwell{% endblock %}
+
+{% block extra_styles %}
+.profile-wrap {
+  max-width: 860px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+/* ── Profile header ─────────────────────────────────────── */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  user-select: none;
+  id: profile-avatar;
+}
+.profile-info { display: flex; flex-direction: column; gap: 0.25rem; }
+.profile-username {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.profile-since {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ── Stat cards ─────────────────────────────────────────── */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+}
+.stat-card {
+  background: var(--surface);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stat-card.highlight .stat-value { color: var(--red); }
+
+/* ── Activity section ───────────────────────────────────── */
+.activity-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+.activity-heading {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Activity grid ──────────────────────────────────────── */
+.activity-scroll { overflow-x: auto; padding-bottom: 4px; }
+
+.activity-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: max-content;
+}
+
+/* Month labels row */
+.activity-months {
+  display: flex;
+  align-items: flex-end;
+  height: 16px;
+  margin-left: 20px; /* aligns with the grid body (past day-of-week labels) */
+}
+.activity-month-cell {
+  width: 13px; /* 11px cell + 2px gap */
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  overflow: visible;
+  white-space: nowrap;
+}
+
+/* Body: day-of-week labels + week columns */
+.activity-body { display: flex; gap: 4px; }
+
+.activity-day-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 16px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.activity-day-labels span {
+  height: 11px;
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  line-height: 11px;
+  text-align: right;
+}
+
+.activity-weeks { display: flex; gap: 2px; }
+
+.activity-week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-day {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  cursor: default;
+}
+.activity-day.outside { background: transparent; cursor: default; }
+.activity-day.lv1 { background: rgba(220, 38, 38, 0.20); }
+.activity-day.lv2 { background: rgba(220, 38, 38, 0.42); }
+.activity-day.lv3 { background: rgba(220, 38, 38, 0.68); }
+.activity-day.lv4 { background: var(--red); }
+
+/* ── Activity legend ────────────────────────────────────── */
+.activity-legend {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  justify-content: flex-end;
+}
+.activity-legend-cell {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}
+
+/* ── Posts link ─────────────────────────────────────────── */
+.profile-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrap">
+
+  <!-- ── Profile header ───────────────────────────────── -->
+  <div class="profile-header">
+    <div class="profile-avatar" id="profile-avatar" data-name="{{ user.username }}">
+      {{ user.username|slice:":1" }}
+    </div>
+    <div class="profile-info">
+      <span class="profile-username">{{ user.username }}</span>
+      <span class="profile-since">Member since {{ start_date|date:"F j, Y" }}</span>
+    </div>
+  </div>
+
+  <!-- ── Stat cards ────────────────────────────────────── -->
+  <div class="stat-cards">
+    <div class="stat-card highlight">
+      <span class="stat-value">{{ total_posts }}</span>
+      <span class="stat-label">Total posts</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ published_posts }}</span>
+      <span class="stat-label">Published</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ draft_posts }}</span>
+      <span class="stat-label">Drafts</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ total_comments }}</span>
+      <span class="stat-label">Comments</span>
+    </div>
+  </div>
+
+  <!-- ── Activity grid ─────────────────────────────────── -->
+  <div class="activity-section">
+    <div class="activity-heading">Post activity</div>
+
+    <div class="activity-scroll">
+      <div class="activity-inner">
+
+        <!-- Month labels -->
+        <div class="activity-months">
+          {% for label in month_row %}
+            <div class="activity-month-cell">{{ label }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Grid body -->
+        <div class="activity-body">
+
+          <!-- Day-of-week labels (Mon … Sun) -->
+          <div class="activity-day-labels">
+            <span>M</span>
+            <span></span>
+            <span>W</span>
+            <span></span>
+            <span>F</span>
+            <span></span>
+            <span>S</span>
+          </div>
+
+          <!-- Week columns -->
+          <div class="activity-weeks">
+            {% for week in weeks %}
+              <div class="activity-week">
+                {% for day in week %}
+                  <div class="activity-day lv{{ day.level }}{% if day.outside %} outside{% endif %}"
+                       {% if day.label %}title="{{ day.label }}"{% endif %}></div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="activity-legend">
+      <span>Less</span>
+      <div class="activity-legend-cell" style="background:var(--surface-2)"></div>
+      <div class="activity-legend-cell" style="background:rgba(220,38,38,0.20)"></div>
+      <div class="activity-legend-cell" style="background:rgba(220,38,38,0.42)"></div>
+      <div class="activity-legend-cell" style="background:rgba(220,38,38,0.68)"></div>
+      <div class="activity-legend-cell" style="background:var(--red)"></div>
+      <span>More</span>
+    </div>
+  </div>
+
+  <!-- ── Actions ───────────────────────────────────────── -->
+  <div class="profile-actions">
+    <a href="{% url 'blog:blog-home' %}" class="btn">My posts</a>
+    <a href="{% url 'blog:post-create' %}" class="btn btn-outline">+ New post</a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    var el = document.getElementById('profile-avatar');
+    if (!el) return;
+    var palette = [
+      '#e53935','#d81b60','#8e24aa','#5e35b1',
+      '#1e88e5','#00897b','#43a047','#f4511e',
+      '#6d4c41','#039be5','#3949ab','#00acc1',
+    ];
+    var name = el.dataset.name || '';
+    var h = 0;
+    for (var i = 0; i < name.length; i++) {
+      h = name.charCodeAt(i) + ((h << 5) - h);
+    }
+    el.style.background = palette[Math.abs(h) % palette.length];
+  }());
+</script>
+{% endblock %}
