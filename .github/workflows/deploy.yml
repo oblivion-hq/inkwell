@@ -85,7 +85,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: mkdir -p /opt/inkwell/nginx
+          script: mkdir -p ~/inkwell/nginx
 
       - name: Copy compose file and nginx config to server
         uses: appleboy/scp-action@v0.1.7
@@ -95,7 +95,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: "docker-compose.prod.yml,nginx/nginx.conf"
-          target: "/opt/inkwell"
+          target: "~/inkwell"
           strip_components: 0
 
       - name: Deploy on server
@@ -107,7 +107,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             set -e
-            cd /opt/inkwell
+            cd ~/inkwell
 
             echo "Pulling latest image..."
             docker compose -f docker-compose.prod.yml pull web
