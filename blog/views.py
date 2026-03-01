@@ -1,9 +1,60 @@
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 
 from .forms import CommentForm, PostForm
 from .models import Post
+
+
+# ── API helpers ──────────────────────────────────────────────────────────────
+
+def _post_to_dict(post, include_content=False):
+    data = {
+        "id": post.id,
+        "title": post.title,
+        "slug": post.slug,
+        "excerpt": post.excerpt,
+        "author": post.author.username,
+        "tags": [t.name for t in post.tags.all()],
+        "created_at": post.created_at.isoformat(),
+        "updated_at": post.updated_at.isoformat(),
+    }
+    if include_content:
+        data["content"] = post.content
+        data["content_html"] = str(post.get_content_html())
+    return data
+
+
+def _api_response(data):
+    r = JsonResponse(data)
+    r["Access-Control-Allow-Origin"] = "*"
+    return r
+
+
+def api_docs(request):
+    base_url = request.build_absolute_uri("/").rstrip("/")
+    return render(request, "blog/api_docs.html", {"base_url": base_url})
+
+
+def api_post_list(request):
+    qs = (Post.objects
+          .filter(published=True)
+          .select_related("author")
+          .prefetch_related("tags")
+          .order_by("-created_at"))
+    author = request.GET.get("author")
+    if author:
+        qs = qs.filter(author__username=author)
+    return _api_response({"count": qs.count(), "posts": [_post_to_dict(p) for p in qs]})
+
+
+def api_post_detail(request, slug):
+    post = get_object_or_404(
+        Post.objects.select_related("author").prefetch_related("tags"),
+        slug=slug, published=True,
+    )
+    return _api_response(_post_to_dict(post, include_content=True))
 
 
 def public_home(request):

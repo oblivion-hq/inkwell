@@ -7,4 +7,5 @@ app_name = "user"
 urlpatterns = [
     path("register/", views.RegisterView.as_view(), name="register"),
     path("profile/", views.profile, name="profile"),
+    path("<str:username>/", views.public_profile, name="public-profile"),
 ]

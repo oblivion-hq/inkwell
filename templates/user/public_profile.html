@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}{{ author.username }} — Inkwell{% endblock %}
+
+{% block extra_styles %}
+.pub-profile-wrap {
+  max-width: 760px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  transition: color 0.15s;
+}
+.back-link:hover { color: var(--text); text-decoration: none; }
+
+/* ── Profile header ─────────────────────────────────────── */
+.pub-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+.pub-profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  user-select: none;
+}
+.pub-profile-info { display: flex; flex-direction: column; gap: 0.2rem; }
+.pub-profile-username {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.pub-profile-meta {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* ── Post list (read-only) ──────────────────────────────── */
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.post-card {
+  background: var(--surface);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: background 0.12s;
+  border-bottom: 1px solid var(--border);
+}
+.post-card:last-child { border-bottom: none; }
+.post-card:hover { background: var(--surface-2); }
+
+.post-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.35;
+  text-decoration: none;
+}
+.post-title:hover { color: var(--red); text-decoration: none; }
+
+.post-excerpt {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.post-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+.meta-item {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.meta-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: var(--red);
+  font-weight: 500;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-soft);
+  margin-bottom: 1rem;
+}
+.section-title span { color: var(--text); }
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="pub-profile-wrap">
+
+  <a href="javascript:history.back()" class="back-link">← Back</a>
+
+  <div class="pub-profile-header">
+    <div class="pub-profile-avatar" id="pub-avatar" data-name="{{ author.username }}">
+      {{ author.username|slice:":1" }}
+    </div>
+    <div class="pub-profile-info">
+      <span class="pub-profile-username">{{ author.username }}</span>
+      <span class="pub-profile-meta">
+        Member since {{ author.date_joined|date:"F Y" }}
+        &nbsp;·&nbsp;
+        {{ posts|length }} published post{{ posts|length|pluralize }}
+      </span>
+    </div>
+  </div>
+
+  <p class="section-title">
+    Posts by <span>{{ author.username }}</span>
+  </p>
+
+  {% if posts %}
+    <div class="post-list">
+      {% for post in posts %}
+        <div class="post-card">
+          <a href="{% url 'blog:post-detail' post.slug %}" class="post-title">{{ post.title }}</a>
+
+          {% if post.excerpt %}
+            <p class="post-excerpt">{{ post.excerpt }}</p>
+          {% elif post.content %}
+            <p class="post-excerpt">{{ post.content|truncatechars:160 }}</p>
+          {% endif %}
+
+          <div class="post-card-meta">
+            <span class="meta-item">{{ post.created_at|date:"M j, Y" }}</span>
+            {% if post.tags.exists %}
+              <span class="meta-dot"></span>
+              {% for tag in post.tags.all %}
+                <span class="tag-pill">{{ tag.name }}</span>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">No published posts yet.</div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    var el = document.getElementById('pub-avatar');
+    if (!el) return;
+    var palette = [
+      '#e53935','#d81b60','#8e24aa','#5e35b1',
+      '#1e88e5','#00897b','#43a047','#f4511e',
+      '#6d4c41','#039be5','#3949ab','#00acc1',
+    ];
+    var name = el.dataset.name || '';
+    var h = 0;
+    for (var i = 0; i < name.length; i++) {
+      h = name.charCodeAt(i) + ((h << 5) - h);
+    }
+    el.style.background = palette[Math.abs(h) % palette.length];
+  }());
+</script>
+{% endblock %}

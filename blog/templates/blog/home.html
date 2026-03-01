@@ -169,7 +169,10 @@
       My posts
       {% if posts %}<span class="post-count">{{ posts|length }} post{{ posts|length|pluralize }}</span>{% endif %}
     </h1>
-    <a href="{% url 'blog:post-create' %}" class="btn">+ New post</a>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <a href="{% url 'blog:api-docs' %}" class="btn btn-outline" style="font-size:0.82rem;padding:0.4rem 0.9rem;">API</a>
+      <a href="{% url 'blog:post-create' %}" class="btn">+ New post</a>
+    </div>
   </div>
 
   {% if posts %}

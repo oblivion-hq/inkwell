@@ -72,6 +72,25 @@
   background: var(--border);
   flex-shrink: 0;
 }
+.author-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+.author-badge:hover {
+  border-color: var(--red);
+  color: var(--red);
+  text-decoration: none;
+}
 .article-status {
   font-size: 0.7rem;
   font-weight: 600;
@@ -264,7 +283,7 @@
     {% endif %}
 
     <div class="article-meta">
-      <span>{{ post.author.username }}</span>
+      <a href="{% url 'user:public-profile' post.author.username %}" class="author-badge">{{ post.author.username }}</a>
       <span class="article-meta-dot"></span>
       <span>{{ post.created_at|date:"F j, Y" }}</span>
       {% if post.updated_at != post.created_at %}

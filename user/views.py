@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Count
 from django.db.models.functions import TruncDate
-from django.shortcuts import render
+from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 
@@ -98,4 +99,13 @@ def profile(request):
         "weeks": weeks,
         "month_row": month_row,
         "start_date": start_date,
+    })
+
+
+def public_profile(request, username):
+    author = get_object_or_404(User, username=username)
+    posts = Post.objects.filter(author=author, published=True).order_by("-created_at")
+    return render(request, "user/public_profile.html", {
+        "author": author,
+        "posts": posts,
     })

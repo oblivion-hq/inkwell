@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Public API — Inkwell{% endblock %}
+
+{% block extra_styles %}
+.api-wrap {
+  max-width: 820px;
+  margin: 3rem auto;
+  padding: 0 1.5rem 5rem;
+}
+
+/* ── Page header ─────────────────────────────────────────── */
+.api-page-header {
+  margin-bottom: 2.5rem;
+}
+.api-page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.4rem;
+}
+.api-page-header p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Base URL row ────────────────────────────────────────── */
+.base-url-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+.base-url-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.base-url-value {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 0.3rem 0.75rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.copy-btn:hover { border-color: var(--red); color: var(--red); }
+.copy-btn.copied { border-color: #4ade80; color: #4ade80; }
+
+/* ── Section title ───────────────────────────────────────── */
+.api-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+/* ── Endpoint card ───────────────────────────────────────── */
+.endpoint-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.endpoint-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.method-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.method-get {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+.endpoint-path {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.9rem;
+  color: var(--text);
+  flex: 1;
+}
+.endpoint-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.endpoint-toggle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.endpoint-card.open .endpoint-toggle { transform: rotate(180deg); }
+
+.endpoint-body {
+  display: none;
+  padding: 1.25rem;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.endpoint-card.open .endpoint-body { display: flex; }
+
+/* ── Params table ────────────────────────────────────────── */
+.params-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+.params-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+.params-table th {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-weight: 600;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+}
+.params-table td {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+  vertical-align: top;
+}
+.params-table td code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
+  color: var(--red);
+  background: var(--surface-2);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+.param-optional {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+}
+
+/* ── Example response ────────────────────────────────────── */
+.example-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.example-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.example-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.try-link {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--red);
+  text-decoration: none;
+}
+.try-link:hover { text-decoration: underline; }
+pre.json-block {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+.json-key   { color: #93c5fd; }
+.json-str   { color: #86efac; }
+.json-num   { color: #fda4af; }
+.json-bool  { color: #fbbf24; }
+.json-null  { color: var(--text-muted); }
+{% endblock %}
+
+{% block content %}
+<div class="api-wrap">
+
+  <div class="api-page-header">
+    <h1>Public API</h1>
+    <p>Read-only JSON API for published posts. No authentication required. All endpoints support <code style="font-family:monospace;color:var(--red)">CORS</code> so you can fetch from any origin.</p>
+  </div>
+
+  <!-- Base URL -->
+  <div class="base-url-row">
+    <span class="base-url-label">Base URL</span>
+    <span class="base-url-value" id="base-url-text">{{ base_url }}/blog/api</span>
+    <button class="copy-btn" onclick="copyText('base-url-text', this)">Copy</button>
+  </div>
+
+  <p class="api-section-title">Endpoints</p>
+
+  <!-- ── List posts ──────────────────────────────────────── -->
+  <div class="endpoint-card open">
+    <div class="endpoint-head" onclick="toggle(this)">
+      <span class="method-badge method-get">GET</span>
+      <span class="endpoint-path">/blog/api/posts/</span>
+      <span class="endpoint-desc">List all published posts</span>
+      <span class="endpoint-toggle">▾</span>
+    </div>
+    <div class="endpoint-body">
+
+      <div>
+        <p class="params-label">Query Parameters</p>
+        <table class="params-table">
+          <thead>
+            <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>author</code> <span class="param-optional">optional</span></td>
+              <td>string</td>
+              <td>Filter posts by author username. E.g. <code>?author=alice</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div class="example-head">
+          <span class="example-label">Example Response</span>
+          <div class="example-actions">
+            <a href="{% url 'blog:api-post-list' %}" target="_blank" class="try-link">Try it ↗</a>
+            <button class="copy-btn" onclick="copyText('ex-list', this)">Copy</button>
+          </div>
+        </div>
+        <pre class="json-block" id="ex-list">{
+  <span class="json-key">"count"</span>: <span class="json-num">2</span>,
+  <span class="json-key">"posts"</span>: [
+    {
+      <span class="json-key">"id"</span>: <span class="json-num">1</span>,
+      <span class="json-key">"title"</span>: <span class="json-str">"Hello World"</span>,
+      <span class="json-key">"slug"</span>: <span class="json-str">"hello-world"</span>,
+      <span class="json-key">"excerpt"</span>: <span class="json-str">"A short summary of the post."</span>,
+      <span class="json-key">"author"</span>: <span class="json-str">"alice"</span>,
+      <span class="json-key">"tags"</span>: [<span class="json-str">"django"</span>, <span class="json-str">"python"</span>],
+      <span class="json-key">"created_at"</span>: <span class="json-str">"2026-03-01T08:00:00+00:00"</span>,
+      <span class="json-key">"updated_at"</span>: <span class="json-str">"2026-03-01T08:00:00+00:00"</span>
+    }
+  ]
+}</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Single post ─────────────────────────────────────── -->
+  <div class="endpoint-card">
+    <div class="endpoint-head" onclick="toggle(this)">
+      <span class="method-badge method-get">GET</span>
+      <span class="endpoint-path">/blog/api/posts/<span style="color:var(--red)">&lt;slug&gt;</span>/</span>
+      <span class="endpoint-desc">Get a single post</span>
+      <span class="endpoint-toggle">▾</span>
+    </div>
+    <div class="endpoint-body">
+
+      <div>
+        <p class="params-label">Path Parameters</p>
+        <table class="params-table">
+          <thead>
+            <tr><th>Name</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>slug</code></td>
+              <td>string</td>
+              <td>The URL slug of the post. Returns <code>404</code> if not published or not found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div class="example-head">
+          <span class="example-label">Example Response</span>
+          <div class="example-actions">
+            <button class="copy-btn" onclick="copyText('ex-detail', this)">Copy</button>
+          </div>
+        </div>
+        <pre class="json-block" id="ex-detail">{
+  <span class="json-key">"id"</span>: <span class="json-num">1</span>,
+  <span class="json-key">"title"</span>: <span class="json-str">"Hello World"</span>,
+  <span class="json-key">"slug"</span>: <span class="json-str">"hello-world"</span>,
+  <span class="json-key">"excerpt"</span>: <span class="json-str">"A short summary of the post."</span>,
+  <span class="json-key">"content"</span>: <span class="json-str">"# Hello World\n\nRaw **markdown** content..."</span>,
+  <span class="json-key">"content_html"</span>: <span class="json-str">"&lt;h1&gt;Hello World&lt;/h1&gt;\n&lt;p&gt;Raw &lt;strong&gt;markdown&lt;/strong&gt; content...&lt;/p&gt;"</span>,
+  <span class="json-key">"author"</span>: <span class="json-str">"alice"</span>,
+  <span class="json-key">"tags"</span>: [<span class="json-str">"django"</span>, <span class="json-str">"python"</span>],
+  <span class="json-key">"created_at"</span>: <span class="json-str">"2026-03-01T08:00:00+00:00"</span>,
+  <span class="json-key">"updated_at"</span>: <span class="json-str">"2026-03-01T08:00:00+00:00"</span>
+}</pre>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function toggle(head) {
+    head.closest('.endpoint-card').classList.toggle('open');
+  }
+
+  function copyText(id, btn) {
+    var el = document.getElementById(id);
+    var text = el.innerText || el.textContent;
+    navigator.clipboard.writeText(text.trim()).then(function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function () {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  }
+</script>
+{% endblock %}
