@@ -44,13 +44,92 @@ jobs:
             --extend-ignore=E501
 
       - name: Run tests
-        run: pytest --tb=short -v
+        run: |
+          pytest --tb=short -v \
+            --junitxml=report.xml \
+            --cov=blog --cov=user --cov=blog_project \
+            --cov-report=xml:coverage.xml
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: report.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  e2e:
+    name: E2E Tests
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: "test-secret-key-not-for-production"
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost"
+      DB_ENGINE: "django.db.backends.sqlite3"
+      DB_NAME: "e2e_db.sqlite3"
+      DB_USER: ""
+      DB_PASSWORD: ""
+      DB_HOST: ""
+      DB_PORT: ""
+      BASE_URL: "http://localhost:8000"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest-playwright
+
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      - name: Start Django server
+        run: |
+          python manage.py migrate --run-syncdb
+          python manage.py runserver 8000 &
+          echo "Waiting for server..."
+          sleep 3
+
+      - name: Run E2E tests
+        run: pytest e2e/ --tb=short -v
+
+  sonar:
+    name: SonarCloud Quality Gate
+    needs: e2e
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
 
   build:
     name: Build & Push
-    needs: test
+    needs: sonar
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: false # temporarily disabled
 
     steps:
       - uses: actions/checkout@v4
@@ -74,6 +153,7 @@ jobs:
     name: Deploy
     needs: build
     runs-on: ubuntu-latest
+    if: false # temporarily disabled
 
     steps:
       - uses: actions/checkout@v4

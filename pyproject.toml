@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "blog_project.settings_test"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+
+[tool.coverage.run]
+source = ["blog", "user", "blog_project"]
+omit = ["*/migrations/*", "*/tests*", "manage.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
+[tool.flake8]
+max-line-length = 119
+exclude = [
+    "venv",
+    "*/migrations/*",
+    "manage.py",
+]
