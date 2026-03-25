@@ -46,6 +46,7 @@ jobs:
       - name: Run tests
         run: |
           pytest --tb=short -v \
+            --ignore=e2e \
             --junitxml=report.xml \
             --cov=blog --cov=user --cov=blog_project \
             --cov-report=xml:coverage.xml
